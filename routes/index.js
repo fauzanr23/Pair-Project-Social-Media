@@ -1,14 +1,14 @@
 const router = require("express").Router()
-const landingRoutes = require("./landing")
+const loginRoutes = require("./login")
 const profileRoutes = require("./profiles")
 const exploreRoutes = require("./explore") 
 
 //routes
 router.get("/", (req,res) =>{
-     res.redirect("/landing")
+     res.redirect("/start")
 })
 
-router.use("/landing", landingRoutes)
+router.use("/start", loginRoutes)
 
 router.use("/explore", exploreRoutes)
 

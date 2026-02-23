@@ -2,8 +2,9 @@ const { Post, Profile, Tag, User } = require("../models/index")
 const { Helper } = require("../helpers/index")
 const { Op } = require("sequelize")
 class Controller {
+
     //halaman login
-    static async landing(req,res) {
+    static async getLogin(req,res) {
         try {
             
         } catch (error) {
@@ -11,7 +12,7 @@ class Controller {
         }
     }
     //fungsi login
-    static async login(req,res) {
+    static async postLogin(req,res) {
         try {
             
         } catch (error) {

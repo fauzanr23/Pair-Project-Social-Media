@@ -3,8 +3,8 @@ const Controller = require("../controllers/controller")
 const router = require("express").Router() 
 
 //login page (ada tombol untuk register)
-router.get("/", Controller.landing)
-router.post("/", Controller.login)
+router.get("/", Controller.getLogin)
+router.post("/", Controller.postLogin)
 
 //register page
 router.get("/register", Controller.getRegister)

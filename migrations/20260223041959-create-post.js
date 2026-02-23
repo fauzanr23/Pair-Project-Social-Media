@@ -22,7 +22,13 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       ProfileId: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        references: {
+          model: "Profiles",
+          key: "id"
+        },
+        onDelete: "cascade",
+        onUpdate: "cascade"
       },
       createdAt: {
         allowNull: false,

@@ -39,7 +39,8 @@ class Controller {
     //halaman home (ada form buat status)
     static async getExplore(req,res) {
         try {
-            
+
+            res.render("explore")
         } catch (error) {
             res.send(error)
         }

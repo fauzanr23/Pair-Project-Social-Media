@@ -1,4 +1,18 @@
 <%- include('header') %>
     <h1>This is the explore page</h1>
+    <form action="/explore/:profileId/add" method="post">
+        <label>Title</label> <br>
+        <input type="text" name="title" placeholder="Title..."> <br>
+
+        <label>Create Post</label> <br>
+        <textarea name="content" placeholder="Enter your post here..."></textarea> <br>
+
+        <label>Image</label> <br>
+        <input type="text" name="imageUrl" placeholder="Image URL..."> <br>
+
+        <button type="submit">Post</button>
+    </form>
+    <h2>What is up today?</h2>
+    <p>this contains posts</p>
 </body>
 </html>

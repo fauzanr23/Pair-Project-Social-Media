@@ -12,6 +12,6 @@ router.use("/start", loginRoutes)
 
 router.use("/explore", exploreRoutes)
 
-router.use("/:profileId", profileRoutes)
+router.use("/profile", profileRoutes)
 
 module.exports = router

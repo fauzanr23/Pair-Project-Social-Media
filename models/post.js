@@ -16,14 +16,42 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Post.init({
-    title: DataTypes.STRING,
-    content: DataTypes.TEXT,
-    imageUrl: DataTypes.STRING,
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notNull: {
+          msg: "Title required to post!",
+        },
+        notEmpty: {
+          msg: "Title required to post!",
+        },
+      },
+    },
+    content: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      validate: {
+        notNull: {
+          msg: "Content required to post!",
+        },
+        notEmpty: {
+          msg: "Content required to post!",
+        },
+      },
+    },
+    imageUrl: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
     like: DataTypes.INTEGER,
     ProfileId: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Post',
   });
+  Post.beforeCreate((instance) => {
+    instance.like = 0
+  })
   return Post;
 };

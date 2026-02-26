@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sosial Media</title>
+</head>
+<body>
+    <h1>Login</h1>
+    <main>
+        <div>
+            <p style="color: red;"><%= error %></p>
+            <form action="/start" method="post">
+                <label>Email</label> <br>
+                <input type="text" name="email"> <br>
+    
+                <label>Password</label> <br>
+                <input type="password" name="password"> <br>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+        <div>
+            <p>Don't have and account?</p>
+            <a href="/start/register">
+                <button>Register here!</button>
+            </a>
+        </div>
+    </main>
+</body>
+</html>

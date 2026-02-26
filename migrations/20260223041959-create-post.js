@@ -18,9 +18,6 @@ module.exports = {
       imageUrl: {
         type: Sequelize.STRING
       },
-      like: {
-        type: Sequelize.INTEGER
-      },
       ProfileId: {
         type: Sequelize.INTEGER,
         references: {

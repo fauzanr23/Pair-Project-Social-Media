@@ -2,26 +2,29 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Profiles', {
+    await queryInterface.createTable('Likes', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      photo: {
-        type: Sequelize.STRING
-      },
-      description: {
-        type: Sequelize.TEXT
-      },
-      name: {
-        type: Sequelize.STRING
+      isLiked: {
+        type: Sequelize.BOOLEAN
       },
       UserId: {
         type: Sequelize.INTEGER,
         references: {
           model: "Users",
+          key: "id"
+        },
+        onDelete: "cascade",
+        onUpdate: "cascade"
+      },
+      PostId: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: "Posts",
           key: "id"
         },
         onDelete: "cascade",
@@ -38,6 +41,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Profiles');
+    await queryInterface.dropTable('Likes');
   }
 };

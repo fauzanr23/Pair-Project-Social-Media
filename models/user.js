@@ -2,7 +2,9 @@
 const {
   Model
 } = require('sequelize');
-const bcrypt = require('bcryptjs')
+const bcrypt = require("bcryptjs")
+const nodemailer = require("nodemailer");
+const Helper = require('../helpers');
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     /**
@@ -11,7 +13,9 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      User.hasOne(models.Profile, {foreignKey: "UserId"})
+      User.hasOne(models.Profile, { foreignKey: "UserId" })
+
+      User.belongsToMany(models.Post, {through: models.Like, foreignKey: "UserId"})
     }
   }
   User.init({
@@ -22,12 +26,21 @@ module.exports = (sequelize, DataTypes) => {
     role: DataTypes.STRING,
   }, {
     hooks: {
-      beforeCreate(instance, options) {
-        
+      beforeCreate(user, options) {
         const salt = bcrypt.genSaltSync(8);
-        const hash = bcrypt.hashSync(instance.password, salt)
-        
-        instance.password = hash
+        const hash = bcrypt.hashSync(user.password, salt)
+        user.password = hash
+        user.role = "user"
+      },
+      afterCreate(user, options) {
+        let message = {
+          from: `"MeowSpace" <MeowSpace@email.com>`,
+          to: user.email,
+          subject: "Registration Successfull",
+          text: "Welcome to MeowSpace!",
+          html: "<p>Welcome to MeowSpace!</b>.</p>",
+        }
+        Helper.sendMail(message)
       }
     },
     sequelize,

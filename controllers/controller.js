@@ -1,246 +1,197 @@
-const { Post, Profile, Tag, User } = require("../models/index")
+const { Post, Profile, Tag, User, PostTag, Like } = require("../models/index")
 const { Helper } = require("../helpers/index")
 const { Op } = require("sequelize")
+const bcrypt = require("bcryptjs")
 class Controller {
 
     //halaman login
-    static async getLogin(req,res) {
+    static async getLogin(req, res) {
         try {
-            if (req.session.UserId) {
-                return res.redirect("/explore")
-            }
-            res.render("auth", { page: "login",
-                UserId: req.session.UserId
-             })
+            const { error } = req.query
+            res.render("login", { error })
         } catch (error) {
             res.send(error)
         }
     }
     //fungsi login
-    static async postLogin(req,res) {
+    static async postLogin(req, res) {
         try {
             const { email, password } = req.body
-            const user = await User.findOne({ where: { email }})
+            let user = await User.findOne({
+                where: {
+                    email: email
+                }
+            });
 
-            if (!user) {
-                return res.render("auth", { page: "login", error: "Email is not registered" })
+            if (user) {
+                const isValidPassword = bcrypt.compareSync(password, user.password)
+
+                if (isValidPassword) {
+                    req.session.user = {
+                        id: user.id,
+                        role: user.role,
+                        username: user.username
+                    }
+                    return res.redirect("/explore")
+                } else {
+                    const error = "Invalid email/password!"
+                    return res.redirect(`/start?error=${error}`)
+                }
+            } else {
+                const error = "Invalid email/password!"
+                return res.redirect(`/start?error=${error}`)
             }
-
-            const isMatch = Helper.comparePassword(password, user.password)
-
-            if (!isMatch) {
-                return res.render("auth", { page: "login", error: "Invalid password" })
-            }
-
-            req.session.UserId = user.id
-            res.redirect("/explore")
+        } catch (error) {
+            res.send(error)
+        }
+    }
+    //logout
+    static async getLogout(req, res) {
+        try {
+            req.session.destroy()
+            res.redirect("/start")
         } catch (error) {
             res.send(error)
         }
     }
     //halaman register
-    static async getRegister(req,res) {
+    static async getRegister(req, res) {
         try {
-            if (req.session.UserId) {
-                return res.redirect("/explore")
-            }
-
-            res.render("auth", { page: "register",
-                UserId: req.session.UserId
-             })
+            res.render("register")
         } catch (error) {
             res.send(error)
         }
     }
     //submit register
-    static async postRegister(req,res) {
+    static async postRegister(req, res) {
         try {
-            const { username, email, password } = req.body
-            const newUser = await User.create({username, email, password})
-
-            await Profile.create({ UserId: newUser.id })
-            res.redirect("/login")
-        } catch (error) {
-            res.render("auth", { page: "register", error: error.errors?.[0]?.message || error.message })
-        }
-    }
-    //logout
-    static async logout(req, res) {
-        try {
-            req.session.destroy((err) => {
-                if (err) {
-                    return res.send(err)
-                }
-
-                res.redirect("/login")
+            const { username, email, password, dateOfBirth } = req.body
+            let user = await User.create({
+                username,
+                email,
+                password,
+                dateOfBirth
             })
+            await Profile.create({
+                UserId: user.id,
+                name: user.username
+            })
+            res.redirect("/")
         } catch (error) {
             res.send(error)
         }
     }
 
     //halaman home (ada form buat status)
-    static async getExplore(req,res) {
+    static async getExplore(req, res) {
         try {
-            const posts = await Post.findAll({
-                include: [
-                    { model: User },
-                    { model: Tag },
-                ],
-                order: [["createdAt", "DESC"]]
+            const userId = req.session.user.id
+            const profile = await Profile.findOne({
+                where: {
+                    UserId: userId
+                }
             })
-            res.render("explore", 
-                { posts, 
-                UserId: req.session.UserId 
+            let tags = await Tag.findAll()
+            let posts = await Post.findAll({
+                include: Tag
             })
+            res.render("explore", { tags, profile, posts })
         } catch (error) {
             res.send(error)
         }
     }
 
     //Posting status
-    static async postExplore(req,res) {
+    static async postExplore(req, res) {
         try {
-            const { content } = req.body
-            const newPost = await Post.create({
+            const { ProfileId } = req.params
+
+            const { title, content, imageUrl, id } = req.body
+            let post = await Post.create({
+                title,
                 content,
-                UserId: req.session.UserId
+                imageUrl,
+                ProfileId
             })
-            
-            const hashtags = content.match(/#\w+/g)
-            if (hashtags) {
-                for (const tag of hashtags) {
-                    const [tagInstance] = await Tag.findOrCreate({
-                        where: { name: tag }
-                    })
-                    await newPost.addTag(tagInstance)
-                }
-            }
+
+            await PostTag.create({
+                PostId: post.id,
+                TagId: id
+            })
+
+            await Like.create({
+                PostId: post.id,
+                UserId: ProfileId
+            })
+
             res.redirect("/explore")
         } catch (error) {
+            console.log(error);
+
             res.send(error)
         }
     }
 
     //halaman search
-    static async getSearch(req,res) {
+    static async getSearch(req, res) {
         try {
-            const { q } = req.query
-            const posts = await Post.findAll({
-                where: {
-                    content: {
-                        [Op.like]: `%${q}%`
+            const { searchTag } = req.query
+            let postTags = await Post.findAll({
+                include: {
+                    model: Tag,
+                    where: {
+                        name: {
+                            [Op.iLike]: `%${searchTag}%`
+                        }
                     }
-                },
-                include: [{ model: User }]
+                }
             })
-            res.render("search", { posts, keyword: q })
+            res.render("search", { postTags })
         } catch (error) {
             res.send(error)
         }
     }
     //halaman profile
-    static async getProfile(req,res) {
+    static async getProfile(req, res) {
         try {
             const { id } = req.params
-            const user = await User.findByPk(id, {
-                include: [
-                    { model: Profile },
-                    {
-                        model: Post,
-                        include: [{ model: Tag }]
-                    }
-                ]
-            })
-
-            if (!user) {
-                return res.render("404", { message: "User is not found" })
-            }
-
-            const isOwner = req.session.UserId == id
-            res.render("profile", { user, isOwner })
+            let profile = await Profile.findByPk(id)
+            res.render("profile", { profile })
         } catch (error) {
             res.send(error)
         }
     }
 
     //halaman edit profile
-    static async getEditProf(req,res) {
+    static async getEditProf(req, res) {
         try {
-            const profile = await Profile.findOne({
-                where: { UserId: req.session.UserId }
-            })
-            res.render("editProfile", { profile })
+
         } catch (error) {
             res.send(error)
         }
     }
 
     //submit edit profile
-    static async postEditProf(req,res) {
+    static async postEditProf(req, res) {
         try {
-            const { bio, profilePicture } = req.body
-            await Profile.update(
-                { bio, profilePicture },
-                { where: { UserId: req.session.UserId }}
-            )
 
-            res.redirect(`/profile/${req.session.UserId}`)
         } catch (error) {
             res.send(error)
         }
     }
 
     //tampilan post/status
-    static async getPost(req,res) {
+    static async getPost(req, res) {
         try {
-            const { id } = req.params
-            const post = await Post.findByPk(id, {
-                include: [
-                    { model: User },
-                    { model: Tag }
-                ]
-            })
 
-            if (!post) {
-                return res.render("404", { message: "Post is not found" })
-            }
-
-            const isOwner = req.session.UserId == post.UserId
-            res.render("post", { post, isOwner })
         } catch (error) {
             res.send(error)
         }
     }
     //submit post/status yang diedit
-    static async postEditPost(req,res) {
+    static async postEditPost(req, res) {
         try {
-            const { id } = req.params
-            const { content } = req.body
-            const post = await Post.findByPk(id)
 
-            if (post.UserId !== req.session.UserId) {
-                return res.render("403", { message: "You don't have access!" })
-            }
-
-            await Post.update(
-                { content },
-                { where: { id } }
-            )
-
-            await post.setTags([])
-
-            const hashtags = content.match(/#\w+/g)
-            if (hashtags) {
-                for (const tag of hashtags) {
-                    const [tagInstance] = await Tag.findOrCreate({
-                        where: { name: tag }
-                    })
-                    await post.addTag(tagInstance)
-                }
-            }
-
-            res.redirect(`/post/${id}`)
         } catch (error) {
             res.send(error)
         }

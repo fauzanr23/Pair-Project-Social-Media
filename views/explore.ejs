@@ -1,4 +1,41 @@
 <%- include('header') %>
+<%= JSON.stringify(posts) %>
     <h1>This is the explore page</h1>
+    <form action="/explore/<%= profile.id %>/add" method="post">
+        <label>Title</label> <br>
+        <input type="text" name="title" placeholder="Title..."> <br>
+
+        <label>Create Post</label> <br>
+        <textarea name="content" placeholder="Enter your post here..."></textarea> <br>
+
+        <label>Tags</label> <br>
+        <select name="id">
+            <option selected disabled>--Select Tag--</option>
+            <% tags.forEach(el => { %>
+             <option value="<%= el.id %>"><%= el.name %></option>
+            <% }) %>
+
+        </select> <br>
+
+        <label>Image</label> <br>
+        <input type="text" name="imageUrl" placeholder="Image URL..."> <br>
+
+        <button type="submit">Post</button>
+    </form>
+    <h2>Meow's up today?</h2>
+    <% if (posts) { %>
+        <%posts.forEach(el => { %>
+            <% if (el.imageUrl) { %>
+             <img src="<%= el.imageUrl %>">
+            <% } %>
+        <h3><%= el.title %></h3>
+         <p><%= el.content %></p>
+         <a href="/explore/search?=<%= el.Tags[0].name %>"><%= el.Tags[0].name %></a>
+         <p><%= el.publishedTime %></p>
+        <% }) %>
+     
+    <% } else { %>
+        <p>No post</p>
+    <% } %>
 </body>
 </html>

@@ -3,13 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sosmed</title>
+    <title>MeowSpace</title>
+    <style>
+        :root {
+            --cream: #fff8ef;
+            --cat-brown: #8a5d3b;
+            --soft-brown: #c89f75;
+            --paw-pink: #ffb7c5;
+            --ink: #2c1f17;
+            --card: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at 12% 14%, rgba(255, 183, 197, 0.25), transparent 20%),
+                radial-gradient(circle at 82% 18%, rgba(200, 159, 117, 0.2), transparent 24%),
+                linear-gradient(180deg, #fffdf8 0%, var(--cream) 100%);
+            color: var(--ink);
+        }
+
+        body > a {
+            display: inline-block;
+            text-decoration: none;
+            margin: 1rem 0.35rem 0 0.8rem;
+            color: #fff;
+            background: linear-gradient(120deg, var(--cat-brown), #6b4327);
+            border-radius: 999px;
+            padding: 0.45rem 0.85rem;
+            font-weight: 700;
+        }
+
+        body > form {
+            max-width: 920px;
+            margin: 0.8rem auto 0.4rem;
+            padding: 0 1rem;
+            box-sizing: border-box;
+        }
+
+        body > form input,
+        body > form select,
+        body > form button {
+            font: inherit;
+            border-radius: 10px;
+            border: 1px solid #e5c6a9;
+            padding: 0.55rem 0.7rem;
+        }
+
+        body > form input,
+        body > form select {
+            min-width: 230px;
+            background: #fffefb;
+        }
+
+        body > form button {
+            border: 0;
+            background: linear-gradient(90deg, var(--paw-pink), #ffa3b7);
+            color: #5d2a3a;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        h1, h2 {
+            max-width: 920px;
+            margin: 1rem auto 0.7rem;
+            padding: 0 1rem;
+            color: #5b3924;
+            box-sizing: border-box;
+        }
+
+        main {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 0 1rem 1rem;
+            box-sizing: border-box;
+        }
+
+        main > div, article {
+            background: var(--card);
+            border: 1px solid #edd3bd;
+            border-radius: 16px;
+            padding: 1rem;
+            box-shadow: 0 8px 16px rgba(44, 31, 23, 0.07);
+        }
+    </style>
 </head>
 <body>
-    <a href="/logout">Logout</a>
+    <a href="/explore">MeowSpace</a>
     <a href="/profile">Profile</a>
-    <a href="/explore">Sosmed</a>
+    <a href="/logout">Logout</a>
     <form action="/explore/search" method="get">
-        <input type="text" name="search" placeholder="Search Tag...">
+        <input type="text" name="search" placeholder="Search...">
+        <select name="searchBy">
+            <option value="tag">Tag Name</option>
+            <option value="profile">Profile Name</option>
+        </select>
         <button type="submit">Search</button>
     </form>

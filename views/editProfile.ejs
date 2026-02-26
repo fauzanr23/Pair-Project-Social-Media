@@ -1,0 +1,72 @@
+<%- include('header') %>
+<style>
+    .edit-wrap {
+        max-width: 920px;
+        margin: 1rem auto 0;
+        padding: 0 1rem 1rem;
+        box-sizing: border-box;
+    }
+
+    .edit-card {
+        background: #fff;
+        border: 1px solid #edd3bd;
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 16px rgba(44, 31, 23, 0.07);
+    }
+
+    .edit-card label {
+        display: inline-block;
+        font-weight: 700;
+        margin-top: 0.35rem;
+        color: #6b4327;
+    }
+
+    .edit-card input,
+    .edit-card textarea {
+        width: 100%;
+        margin-top: 0.35rem;
+        margin-bottom: 0.55rem;
+        border: 1px solid #e5c6a9;
+        border-radius: 10px;
+        padding: 0.65rem 0.7rem;
+        font: inherit;
+        color: #2c1f17;
+        background: #fffefb;
+        box-sizing: border-box;
+    }
+
+    .edit-card textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .edit-card button {
+        border: 0;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #ffb7c5, #ffa3b7);
+        color: #5d2a3a;
+        font-weight: 800;
+        padding: 0.65rem 1.1rem;
+        cursor: pointer;
+    }
+</style>
+<h1>Edit Profile</h1>
+<main class="edit-wrap">
+    <div class="edit-card">
+        <form action="/profile/<%= profile.id %>/edit" method="post">
+            <label>Photo URL</label> <br>
+            <input type="text" name="photo" value="<%= profile.photo || '' %>" placeholder="Insert photo URL..."> <br>
+
+            <label>Description</label> <br>
+            <textarea name="description" placeholder="Write profile description..."><%= profile.description || '' %></textarea> <br>
+
+            <label>Name</label> <br>
+            <input type="text" name="name" value="<%= profile.name || '' %>" placeholder="Profile name..."> <br>
+
+            <button type="submit">Save Profile</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

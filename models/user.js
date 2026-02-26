@@ -7,11 +7,21 @@ const nodemailer = require("nodemailer");
 const Helper = require('../helpers');
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
+    static age(dateOfBirth) {
+      let birthYear = new Date(dateOfBirth)
+      let today = new Date()
+      let age = today.getFullYear() - birthYear.getFullYear()
+
+      if (today.getMonth() < birthYear.getMonth()) {
+        age--
+      } else if (today.getMonth() === birthYear.getMonth()) {
+        if (today.getDate() < birthYear.getDate()) {
+          age--
+        }
+      }
+
+      return age
+    }
     static associate(models) {
       User.hasOne(models.Profile, { foreignKey: "UserId" })
 
@@ -19,10 +29,61 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   User.init({
-    username: DataTypes.STRING,
-    email: DataTypes.STRING,
-    password: DataTypes.STRING,
-    dateOfBirth: DataTypes.DATE,
+    username: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: {
+          msg: "Username must be filled!"
+        },
+        notNull: {
+          msg: "Username must be filled!"
+        }
+      }
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        isEmail: {
+          msg: "Email invalid!"
+        }
+      }
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: {
+          msg: "Password required!"
+        },
+        notNull: {
+          msg: "Password required!"
+        },
+        passwordLength(password){
+          if (password && password.trim().length < 7) {
+            throw new Error("Password must be at least 7 characters")
+          }
+        }
+      }
+    },
+    dateOfBirth: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      validate: {
+        notEmpty: {
+          msg: "Date of birth required!"
+        },
+        notNull: {
+          msg: "Date of birth required!"
+        },
+        ageVerif(dateOfBirth){
+          if(User.age(dateOfBirth) < 13){
+            throw new Error("You must be at least 13 years old!")
+          }
+        }
+      }
+    },
     role: DataTypes.STRING,
   }, {
     hooks: {

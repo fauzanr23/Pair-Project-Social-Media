@@ -8,6 +8,15 @@ module.exports = (sequelize, DataTypes) => {
     get publishedTime(){
       return Helper.postTime(this.createdAt)
     }
+    static async getLikeCount(postId) {
+      const Like = this.sequelize.models.Like
+      return Like.count({
+        where: {
+          PostId: postId,
+          isLiked: true
+        }
+      })
+    }
     static associate(models) {
       Post.belongsTo(models.Profile, {foreignKey: "ProfileId"})
 
@@ -45,7 +54,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true
     },
-    imageUrl: {
+    isFlagged: {
       type: DataTypes.BOOLEAN,
       allowNull: true
     },

@@ -57,7 +57,8 @@ class Controller {
     //halaman register
     static async getRegister(req, res) {
         try {
-            res.render("register")
+            const { errors } = req.query
+            res.render("register", { errors })
         } catch (error) {
             res.send(error)
         }
@@ -78,14 +79,21 @@ class Controller {
             })
             res.redirect("/")
         } catch (error) {
-            res.send(error)
+            if (error.name === "SequelizeValidationError") {
+                let errors = error.errors.map((el) => el.message)
+                res.redirect(`/start/register?errors=${errors}`)
+            } else {
+                res.send(error)
+            }
         }
     }
 
     //halaman home (ada form buat status)
     static async getExplore(req, res) {
         try {
+            const { errors } = req.query
             const userId = req.session.user.id
+            const isAdmin = req.session.user.role === "admin"
             const profile = await Profile.findOne({
                 where: {
                     UserId: userId
@@ -93,10 +101,23 @@ class Controller {
             })
             let tags = await Tag.findAll()
             let posts = await Post.findAll({
-                include: Tag
+                include: Tag,
+                order: [['createdAt', "DESC"]]
             })
-            res.render("explore", { tags, profile, posts })
+            let likeCounts = {}
+            for (const el of posts) {
+                likeCounts[el.id] = await Post.getLikeCount(el.id)
+            }
+            let likes = await Like.findAll({
+                where: {
+                    UserId: userId,
+                    isLiked: true
+                }
+            })
+            const likedPostIds = likes.map(el => el.PostId)
+            res.render("explore", { tags, profile, posts, isAdmin, likedPostIds, likeCounts, errors })
         } catch (error) {
+
             res.send(error)
         }
     }
@@ -107,46 +128,87 @@ class Controller {
             const { ProfileId } = req.params
 
             const { title, content, imageUrl, id } = req.body
-            let post = await Post.create({
-                title,
-                content,
-                imageUrl,
-                ProfileId
-            })
+            if (!id) {
+                res.redirect(`/explore?errors=All fields must be filled (except image)!`)
+            } else {
+                let post = await Post.create({
+                    title,
+                    content,
+                    imageUrl,
+                    ProfileId
+                })
+                await PostTag.create({
+                    PostId: post.id,
+                    TagId: id
+                })
 
-            await PostTag.create({
-                PostId: post.id,
-                TagId: id
-            })
-
-            await Like.create({
-                PostId: post.id,
-                UserId: ProfileId
-            })
+            }
 
             res.redirect("/explore")
         } catch (error) {
-            console.log(error);
-
-            res.send(error)
+            if (error.name === "SequelizeValidationError") {
+                let errors = error.errors.map((el) => el.message)
+                res.redirect(`/explore?errors=${errors}`)
+            } else {
+                res.send(error)
+            }
         }
     }
 
     //halaman search
     static async getSearch(req, res) {
         try {
-            const { searchTag } = req.query
-            let postTags = await Post.findAll({
-                include: {
-                    model: Tag,
+            const { search, searchBy } = req.query
+            const isAdmin = req.session.user.role === "admin"
+            const keyword = search || ""
+            let postTags = []
+            let profiles = []
+
+            if (searchBy === "profile") {
+                profiles = await Profile.findAll({
                     where: {
                         name: {
-                            [Op.iLike]: `%${searchTag}%`
+                            [Op.iLike]: `%${keyword}%`
+                        }
+                    },
+                    include: {
+                        model: User,
+                        where: {
+                            role: {
+                                [Op.ne]: "admin"
+                            }
                         }
                     }
+                })
+            } else {
+                postTags = await Post.findAll({
+                    include: [
+                        {
+                            model: Tag,
+                            where: {
+                                name: {
+                                    [Op.iLike]: `%${keyword}%`
+                                }
+                            }
+                        },
+                        {
+                            model: Profile
+                        }
+                    ]
+                })
+            }
+            let likeCounts = {}
+            for (const el of postTags) {
+                likeCounts[el.id] = await Post.getLikeCount(el.id)
+            }
+            let likes = await Like.findAll({
+                where: {
+                    UserId: req.session.user.id,
+                    isLiked: true
                 }
             })
-            res.render("search", { postTags })
+            const likedPostIds = likes.map(el => el.PostId)
+            res.render("search", { postTags, profiles, searchBy, search: keyword, isAdmin, likedPostIds, likeCounts })
         } catch (error) {
             res.send(error)
         }
@@ -154,9 +216,63 @@ class Controller {
     //halaman profile
     static async getProfile(req, res) {
         try {
-            const { id } = req.params
-            let profile = await Profile.findByPk(id)
-            res.render("profile", { profile })
+            const userId = req.session.user.id
+            const isAdmin = req.session.user.role === "admin"
+            let profile = await Profile.findOne({
+                where: {
+                    UserId: userId
+                },
+                include: {
+                    model: Post,
+                    include: Tag
+                },
+                order: [[Post, "createdAt", "DESC"]]
+            })
+            let likeCounts = {}
+            for (const el of profile.Posts) {
+                likeCounts[el.id] = await Post.getLikeCount(el.id)
+            }
+            let likes = await Like.findAll({
+                where: {
+                    UserId: userId,
+                    isLiked: true
+                }
+            })
+            const likedPostIds = likes.map(el => el.PostId)
+            res.render("profile", { profile, isOwner: true, isAdmin, likedPostIds, likeCounts })
+        } catch (error) {
+            res.send(error)
+        }
+    }
+
+    //halaman profile by id
+    static async getProfileById(req, res) {
+        try {
+            const { ProfileId } = req.params
+            const isAdmin = req.session.user.role === "admin"
+            let profile = await Profile.findByPk(ProfileId, {
+                include: {
+                    model: Post,
+                    include: Tag
+                },
+                order: [[Post, "createdAt", "DESC"]]
+            })
+            if (!profile) {
+                return res.redirect("/profile")
+            }
+            const isOwner = req.session.user.id === profile.UserId
+            let likeCounts = {}
+            for (const el of profile.Posts) {
+                likeCounts[el.id] = await Post.getLikeCount(el.id)
+            }
+            let likes = await Like.findAll({
+                where: {
+                    UserId: req.session.user.id,
+                    isLiked: true
+                }
+            })
+            const likedPostIds = likes.map(el => el.PostId)
+            res.render("profile", { profile, isOwner, isAdmin, likedPostIds, likeCounts })
         } catch (error) {
             res.send(error)
         }
@@ -165,7 +281,18 @@ class Controller {
     //halaman edit profile
     static async getEditProf(req, res) {
         try {
-
+            const { ProfileId } = req.params
+            const userId = req.session.user.id
+            let profile = await Profile.findOne({
+                where: {
+                    id: ProfileId,
+                    UserId: userId
+                }
+            })
+            if (!profile) {
+                return res.redirect("/profile")
+            }
+            res.render("editProfile", { profile })
         } catch (error) {
             res.send(error)
         }
@@ -174,28 +301,174 @@ class Controller {
     //submit edit profile
     static async postEditProf(req, res) {
         try {
-
+            const { ProfileId } = req.params
+            const userId = req.session.user.id
+            const { photo, description, name } = req.body
+            await Profile.update({
+                photo,
+                description,
+                name
+            }, {
+                where: {
+                    id: ProfileId,
+                    UserId: userId
+                }
+            })
+            res.redirect("/profile")
         } catch (error) {
             res.send(error)
         }
     }
 
-    //tampilan post/status
-    static async getPost(req, res) {
+    //hapus post
+    static async getDelete(req, res) {
         try {
+            const { ProfileId, PostId } = req.params
+            const userId = req.session.user.id
+            const role = req.session.user.role
+            let myProfile = await Profile.findOne({
+                where: {
+                    UserId: userId
+                }
+            })
+            let post = await Post.findByPk(PostId)
 
+            if (!post) {
+                return res.redirect("/explore")
+            }
+
+            if (Number(post.ProfileId) !== Number(ProfileId)) {
+                return res.redirect("/explore")
+            }
+
+            const isOwner = myProfile && Number(myProfile.id) === Number(post.ProfileId)
+            const isAdminCanDelete = role === "admin" && post.isFlagged === true
+
+            if (!isOwner && !isAdminCanDelete) {
+                return res.redirect("/explore")
+            }
+
+            await PostTag.destroy({
+                where: {
+                    PostId
+                }
+            })
+
+            await Like.destroy({
+                where: {
+                    PostId
+                }
+            })
+
+            await Post.destroy({
+                where: {
+                    id: PostId
+                }
+            })
+
+            res.redirect("/profile")
         } catch (error) {
             res.send(error)
         }
     }
-    //submit post/status yang diedit
-    static async postEditPost(req, res) {
+
+    //flag post
+    static async getFlag(req, res) {
         try {
+            const { PostId } = req.params
+            const role = req.session.user.role
 
+            if (role !== "admin") {
+                return res.redirect("/explore")
+            }
+
+            await Post.update({
+                isFlagged: true
+            }, {
+                where: {
+                    id: PostId
+                }
+            })
+
+            res.redirect(req.get("referer") || "/explore")
         } catch (error) {
             res.send(error)
         }
     }
+
+    //unflag post
+    static async getUnflag(req, res) {
+        try {
+            const { PostId } = req.params
+            const role = req.session.user.role
+
+            if (role !== "admin") {
+                return res.redirect("/explore")
+            }
+
+            await Post.update({
+                isFlagged: false
+            }, {
+                where: {
+                    id: PostId
+                }
+            })
+
+            res.redirect(req.get("referer") || "/explore")
+        } catch (error) {
+            res.send(error)
+        }
+    }
+
+    //like post
+    static async getLike(req, res) {
+        try {
+            const { PostId } = req.params
+            const userId = req.session.user.id
+
+            const [updatedRows] = await Like.update({
+                isLiked: true
+            }, {
+                where: {
+                    PostId,
+                    UserId: userId
+                }
+            })
+
+            if (!updatedRows) {
+                await Like.create({
+                    PostId,
+                    UserId: userId,
+                    isLiked: true
+                })
+            }
+
+            res.redirect(req.get("referer") || "/explore")
+        } catch (error) {
+            res.send(error)
+        }
+    }
+
+    //unlike post
+    static async getUnlike(req, res) {
+        try {
+            const { PostId } = req.params
+            const userId = req.session.user.id
+            await Like.update({
+                isLiked: false
+            }, {
+                where: {
+                    PostId,
+                    UserId: userId
+                }
+            })
+
+            res.redirect(req.get("referer") || "/explore")
+        } catch (error) {
+            res.send(error)
+        }
+    }
+
 }
 
 module.exports = Controller

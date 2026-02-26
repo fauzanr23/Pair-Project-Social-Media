@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
     email: DataTypes.STRING,
     password: DataTypes.STRING,
     dateOfBirth: DataTypes.DATE,
-    role: DataTypes.STRING
+    role: DataTypes.STRING,
   }, {
     hooks: {
       beforeCreate(user, options) {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= page === 'login' ? 'Login' : 'Register' %> - MyApp</title>
+    <title><%= page === 'login' ? 'Login' : 'Register' %> - Meow Space</title>
     <style>
         * {
             margin: 0;
@@ -201,17 +201,17 @@
 <body>
 
     <nav class="navbar">
-        <a href="/" class="logo">✦ MyApp</a>
+        <a href="/" class="logo">Meow Space</a>
 
         <% if (typeof UserId !== 'undefined' && UserId) { %>
-            <a href="/logout" class="btn-logout">🚪 Logout</a>
+            <a href="/logout" class="btn-logout">Logout</a>
         <% } %>
     </nav>
 
     <div class="main-content">
         <div class="card">
 
-            <h1>✦ Sosmed</h1>
+            <h1>Meow Space</h1>
 
             <p class="subtitle">
                 <%= page === 'login' ? 'Masuk ke akun kamu' : 'Buat akun baru' %>
@@ -228,13 +228,13 @@
 
             <% if (typeof logoutSuccess !== 'undefined' && logoutSuccess) { %>
                 <div class="success-box">
-                    Kamu berhasil logout!
+                    Logout success!
                 </div>
             <% } %>
 
             <% if (typeof error !== 'undefined' && error) { %>
                 <div class="error-box">
-                    ⚠️ <%= error %>
+                    <%= error %>
                 </div>
             <% } %>
 
@@ -250,7 +250,7 @@
                             type="email"
                             id="email"
                             name="email"
-                            placeholder="Masukkan email kamu"
+                            placeholder="Insert email"
                             required
                         >
                     </div>
@@ -262,12 +262,12 @@
                             type="password"
                             id="password"
                             name="password"
-                            placeholder="Masukkan password kamu"
+                            placeholder="Insert password"
                             required
                         >
                     </div>
 
-                    <button type="submit" class="btn-login">Masuk →</button>
+                    <button type="submit" class="btn-login">Login</button>
 
                 </form>
 
@@ -278,7 +278,7 @@
                 <form action="/register" method="POST" id="registerForm">
 
                     <div class="form-group">
-                        <label for="username">👤 Username</label>
+                        <label for="username">Username</label>
                         
                         <input
                             type="text"
@@ -288,11 +288,11 @@
                             required
                             minlength="3"
                         >
-                        <p class="input-hint">Minimal 3 karakter</p>
+                        <p class="input-hint">3 characters</p>
                     </div>
 
                     <div class="form-group">
-                        <label for="regEmail">📧 Email</label>
+                        <label for="regEmail">Email</label>
                         <input
                             type="email"
                             id="regEmail"
@@ -303,7 +303,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="regPassword">🔒 Password</label>
+                        <label for="regPassword">Password</label>
                         <input
                             type="password"
                             id="regPassword"
@@ -312,11 +312,11 @@
                             required
                             minlength="6"
                         >
-                        <p class="input-hint">Minimal 6 karakter</p>
+                        <p class="input-hint">6 characters</p>
                     </div>
 
                     <div class="form-group">
-                        <label for="confirmPassword">🔒 Konfirmasi Password</label>
+                        <label for="confirmPassword">Password Confirmation</label>
                        
                         <input
                             type="password"
@@ -325,11 +325,11 @@
                             required
                         >
                         <p class="input-hint" id="passError" style="color:red; display:none;">
-                            Password tidak cocok!
+                            Password invalid!
                         </p>
                     </div>
 
-                    <button type="submit" class="btn-register">Daftar Sekarang →</button>
+                    <button type="submit" class="btn-register">Register Now</button>
 
                 </form>
 

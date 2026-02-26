@@ -89,7 +89,10 @@ class Controller {
                 ],
                 order: [["createdAt", "DESC"]]
             })
-            res.render("explore", { posts })
+            res.render("explore", 
+                { posts, 
+                UserId: req.session.UserId 
+            })
         } catch (error) {
             res.send(error)
         }

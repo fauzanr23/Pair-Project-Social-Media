@@ -54,5 +54,8 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'Post',
   });
+  Post.beforeCreate((instance) => {
+    instance.isFlagged = false
+  })
   return Post;
 };

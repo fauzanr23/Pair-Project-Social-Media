@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
     modelName: 'Like',
   });
     Like.beforeCreate((instance) => {
-    instance.like = 0
+    instance.isLiked = false
   })
   return Like;
 };

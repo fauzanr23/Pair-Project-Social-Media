@@ -1,4 +1,4 @@
-const { Post, Profile, Tag, User, PostTag } = require("../models/index")
+const { Post, Profile, Tag, User, PostTag, Like } = require("../models/index")
 const { Helper } = require("../helpers/index")
 const { Op } = require("sequelize")
 const bcrypt = require("bcryptjs")
@@ -91,10 +91,11 @@ class Controller {
                     UserId: userId
                 }
             })
+            let tags = await Tag.findAll()
             let posts = await Post.findAll({
                 include: Tag
             })
-            res.render("explore", { posts, profile })
+            res.render("explore", { tags, profile, posts })
         } catch (error) {
             res.send(error)
         }
@@ -105,27 +106,18 @@ class Controller {
         try {
             const { ProfileId } = req.params
 
-            const { title, content, imageUrl, name } = req.body
+            const { title, content, imageUrl, id } = req.body
             let post = await Post.create({
                 title,
                 content,
                 imageUrl,
                 ProfileId
             })
-            let tag;
-            if (name) {
-                tag = await Tag.create({
-                    name
-                })
-                await PostTag.create({
-                    PostId: post.id,
-                    TagId: tag.id
-                })
-            } else {
-                await PostTag.create({
-                    PostId: post.id,
-                })
-            }
+
+            await PostTag.create({
+                PostId: post.id,
+                TagId: id
+            })
 
             await Like.create({
                 PostId: post.id,

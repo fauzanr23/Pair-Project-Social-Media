@@ -1,4 +1,88 @@
 <%- include('header') %>
-    <h1>This is the search page</h1>
+    <style>
+        .search-card {
+            margin-top: 10px;
+        }
+        
+        .post-image {
+            width: 200px;
+            max-height: 280px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .profile-photo {
+            width: 200px;
+            max-height: 280px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .flag-badge {
+            background: #ffe8b7;
+            border: 1px solid #f1c15f;
+            color: #6d4d03;
+            border-radius: 8px;
+            padding: 0.45rem 0.6rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+    </style>
+    <h1>Search Result</h1>
+    <main>
+        <% if (searchBy === "profile") { %>
+            <div>
+                <h2>Result by Profile Name: <%= search %></h2>
+                <% if (profiles.length) { %>
+                    <% profiles.forEach(el => { %>
+                        <article class="search-card">
+                            <img src="<%= el.photo %>" alt="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png" class="profile-photo">
+                            <h3><%= el.name || "-" %></h3>
+                            <p><%= el.description || "No description yet" %></p>
+                            <a href="/profile/<%= el.id %>">Visit Profile</a>
+                        </article>
+                    <% }) %>
+                <% } else { %>
+                    <p>No profile found</p>
+                <% } %>
+            </div>
+        <% } else { %>
+            <div>
+                <h2>Result by Tag Name: <%= search %></h2>
+                <% if (postTags.length) { %>
+                    <% postTags.forEach(el => { %>
+                        <article class="search-card">
+                            <% if (el.isFlagged) { %>
+                                <p class="flag-badge">this post has been flagged</p>
+                            <% } %>
+                            <% if (el.imageUrl) { %>
+                            <img src="<%= el.imageUrl %>" alt="post image" class="post-image">
+                             <% } %>
+                            <h3><%= el.title %></h3>
+                            <p><%= el.content %></p>
+                            <p>By: <%= el.Profile ? el.Profile.name : "-" %></p>
+                            <p>Total Likes: <%= likeCounts[el.id] || 0 %></p>
+                            <% if (likedPostIds.includes(el.id)) { %>
+                                <a href="/explore/<%= el.id %>/unlike">Unlike</a>
+                            <% } else { %>
+                                <a href="/explore/<%= el.id %>/like">Like</a>
+                            <% } %>
+                            <% if (isAdmin && !el.isFlagged) { %>
+                                <a href="/explore/<%= el.id %>/flag">Flag Post</a>
+                            <% } %>
+                            <% if (isAdmin && el.isFlagged) { %>
+                                <a href="/explore/<%= el.id %>/unflag">Unflag Post</a>
+                                <a href="/profile/<%= el.ProfileId %>/post/<%= el.id %>/delete">Delete Post</a>
+                            <% } %>
+                        </article>
+                    <% }) %>
+                <% } else { %>
+                    <p>No post found</p>
+                <% } %>
+            </div>
+        <% } %>
+    </main>
 </body>
 </html>

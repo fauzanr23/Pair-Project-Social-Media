@@ -1,41 +1,276 @@
 <%- include('header') %>
-<%= JSON.stringify(posts) %>
-    <h1>This is the explore page</h1>
-    <form action="/explore/<%= profile.id %>/add" method="post">
-        <label>Title</label> <br>
-        <input type="text" name="title" placeholder="Title..."> <br>
+<style>
+    :root {
+        --cream: #fff8ef;
+        --cat-brown: #8a5d3b;
+        --soft-brown: #c89f75;
+        --paw-pink: #ffb7c5;
+        --ink: #2c1f17;
+        --card: #ffffff;
+    }
 
-        <label>Create Post</label> <br>
-        <textarea name="content" placeholder="Enter your post here..."></textarea> <br>
+    body {
+        margin: 0;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        background:
+            radial-gradient(circle at 12% 14%, rgba(255, 183, 197, 0.25), transparent 20%),
+            radial-gradient(circle at 82% 18%, rgba(200, 159, 117, 0.2), transparent 24%),
+            linear-gradient(180deg, #fffdf8 0%, var(--cream) 100%);
+        color: var(--ink);
+    }
 
-        <label>Tags</label> <br>
-        <select name="id">
-            <option selected disabled>--Select Tag--</option>
-            <% tags.forEach(el => { %>
-             <option value="<%= el.id %>"><%= el.name %></option>
+    .cat-explore {
+        max-width: 920px;
+        margin: 2rem auto;
+        padding: 1rem;
+    }
+
+    .cat-header {
+        background: linear-gradient(120deg, var(--cat-brown), #6b4327);
+        color: #fff;
+        padding: 1.2rem 1.4rem;
+        border-radius: 16px;
+        box-shadow: 0 14px 26px rgba(74, 44, 23, 0.22);
+        margin-bottom: 1.1rem;
+    }
+
+    .cat-header h1 {
+        margin: 0;
+        font-size: 1.8rem;
+        letter-spacing: 0.3px;
+    }
+
+    .cat-header p {
+        margin: 0.45rem 0 0;
+        opacity: 0.95;
+    }
+
+    .composer-card {
+        background: var(--card);
+        border-radius: 16px;
+        border: 2px solid #f2d5bb;
+        padding: 1rem;
+        margin-bottom: 1.4rem;
+        box-shadow: 0 8px 18px rgba(44, 31, 23, 0.08);
+    }
+
+    .pawst-toggle {
+        border: 0;
+        border-radius: 999px;
+        background: linear-gradient(120deg, var(--cat-brown), #6b4327);
+        color: #fff;
+        font-weight: 800;
+        padding: 0.65rem 1.1rem;
+        cursor: pointer;
+        margin-bottom: 0.85rem;
+    }
+
+    .composer-dropdown {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.32s ease;
+    }
+
+    .composer-dropdown.open {
+        max-height: 700px;
+    }
+
+    label {
+        display: inline-block;
+        font-weight: 700;
+        margin-top: 0.35rem;
+        color: #6b4327;
+    }
+
+    input,
+    textarea,
+    select {
+        width: 100%;
+        margin-top: 0.35rem;
+        margin-bottom: 0.55rem;
+        border: 1px solid #e5c6a9;
+        border-radius: 10px;
+        padding: 0.65rem 0.7rem;
+        font: inherit;
+        color: var(--ink);
+        background: #fffefb;
+        box-sizing: border-box;
+    }
+
+    textarea {
+        min-height: 96px;
+        resize: vertical;
+    }
+
+    button[type="submit"] {
+        border: 0;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--paw-pink), #ffa3b7);
+        color: #5d2a3a;
+        font-weight: 800;
+        padding: 0.65rem 1.1rem;
+        cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+        box-shadow: 0 8px 16px rgba(255, 163, 183, 0.32);
+    }
+
+    button[type="submit"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 18px rgba(255, 163, 183, 0.36);
+    }
+
+    .feed-title {
+        margin: 1.2rem 0 0.9rem;
+        color: #6b4327;
+    }
+
+    .post-card {
+        background: var(--card);
+        border: 1px solid #edd3bd;
+        border-radius: 16px;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        box-shadow: 0 8px 16px rgba(44, 31, 23, 0.07);
+    }
+
+    .post-card img {
+        width: 200px;
+        max-height: 320px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 0.7rem;
+    }
+
+    .post-card h3 {
+        margin: 0.2rem 0 0.45rem;
+        color: #4a2d1a;
+    }
+
+    .post-card p {
+        margin: 0.4rem 0;
+        line-height: 1.45;
+    }
+
+    .post-card a {
+        display: inline-block;
+        text-decoration: none;
+        background: #ffe7ee;
+        color: #8a3d56;
+        padding: 0.25rem 0.65rem;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin-top: 0.25rem;
+    }
+
+    .post-time {
+        font-size: 0.86rem;
+        color: #7a6557;
+    }
+
+    .flag-warning {
+        background: #ffe8b7;
+        border: 1px solid #f1c15f;
+        color: #6d4d03;
+        border-radius: 8px;
+        padding: 0.45rem 0.6rem;
+        font-weight: 700;
+        margin-bottom: 0.6rem;
+    }
+
+    .empty-state {
+        background: #fff;
+        border: 1px dashed #d9b290;
+        color: #7b5a43;
+        padding: 0.9rem 1rem;
+        border-radius: 12px;
+    }
+    #errors{
+        color: red;
+    }
+</style>
+<div class="cat-explore">
+    <div class="cat-header">
+        <h1>Explore</h1>
+        <p>Find pawsome posts and share your own meowments.</p>
+    </div>
+
+    <div class="composer-card">
+        <button type="button" class="pawst-toggle" id="pawstToggle">Make a Pawst</button>
+        <div class="composer-dropdown" id="pawstDropdown">
+            <% if (errors) { %>
+            <% errors = errors.split(",") %>
+            <% errors.forEach(error => { %>
+            <p id="errors"><%= error %></p>
             <% }) %>
+            <% } %>
+            <form action="/explore/<%= profile.id %>/add" method="post">
+                <label>Title</label> <br>
+                <input type="text" name="title" placeholder="Title..."> <br>
 
-        </select> <br>
+                <label>Create Post</label> <br>
+                <textarea name="content" placeholder="Enter your post here..."></textarea> <br>
 
-        <label>Image</label> <br>
-        <input type="text" name="imageUrl" placeholder="Image URL..."> <br>
+                <label>Tag</label> <br>
+                <select name="id">
+                    <option selected disabled>--Select Tag--</option>
+                    <% tags.forEach(el => { %>
+                     <option value="<%= el.id %>"><%= el.name %></option>
+                    <% }) %>
 
-        <button type="submit">Post</button>
-    </form>
-    <h2>Meow's up today?</h2>
+                </select> <br>
+
+                <label>Image</label> <br>
+                <input type="text" name="imageUrl" placeholder="Image URL..."> <br>
+
+                <button type="submit">Post</button>
+            </form>
+        </div>
+    </div>
+
+    <h2 class="feed-title">Meow's up today?</h2>
     <% if (posts) { %>
         <%posts.forEach(el => { %>
-            <% if (el.imageUrl) { %>
-             <img src="<%= el.imageUrl %>">
-            <% } %>
-        <h3><%= el.title %></h3>
-         <p><%= el.content %></p>
-         <a href="/explore/search?=<%= el.Tags[0].name %>"><%= el.Tags[0].name %></a>
-         <p><%= el.publishedTime %></p>
+            <article class="post-card">
+                <% if (el.isFlagged) { %>
+                    <p class="flag-warning">this post has been flagged</p>
+                <% } %>
+                <% if (el.imageUrl) { %>
+                 <img src="<%= el.imageUrl %>">
+                <% } %>
+            <h3><%= el.title %></h3>
+             <p><%= el.content %></p>
+             <a href="/explore/search?search=<%= el.Tags[0].name %>&searchBy=tag"><%= el.Tags[0].name %></a>
+             <p class="post-time"><%= el.publishedTime %></p>
+             <p>Total Likes: <%= likeCounts[el.id] || 0 %></p>
+             <% if (likedPostIds.includes(el.id)) { %>
+                <a href="/explore/<%= el.id %>/unlike" style="background:#8a5d3b; color:#fff;">Unlike</a>
+             <% } else { %>
+                <a href="/explore/<%= el.id %>/like">Like</a>
+             <% } %>
+             <% if (el.ProfileId === profile.id || (isAdmin && el.isFlagged)) { %>
+                <a href="/profile/<%= el.ProfileId %>/post/<%= el.id %>/delete" style="background:#c64d4d; color:#fff;">Delete Post</a>
+             <% } %>
+             <% if (isAdmin && !el.isFlagged) { %>
+                <a href="/explore/<%= el.id %>/flag" style="background:#ffb648; color:#5a3c00;">Flag Post</a>
+             <% } %>
+             <% if (isAdmin && el.isFlagged) { %>
+                <a href="/explore/<%= el.id %>/unflag" style="background:#8a5d3b; color:#fff;">Unflag Post</a>
+             <% } %>
+            </article>
         <% }) %>
      
     <% } else { %>
-        <p>No post</p>
+        <p class="empty-state">No post</p>
     <% } %>
+</div>
+<script>
+    const pawstToggle = document.getElementById("pawstToggle");
+    const pawstDropdown = document.getElementById("pawstDropdown");
+
+    pawstToggle.addEventListener("click", function () {
+        pawstDropdown.classList.toggle("open");
+    });
+</script>
 </body>
 </html>

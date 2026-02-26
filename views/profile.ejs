@@ -1,9 +1,126 @@
 <%- include('header') %>
+    <style>
+        .profile-photo {
+            max-width: 240px;
+            border-radius: 12px;
+        }
+
+        .profile-edit-btn,
+        .post-action-btn {
+            display: inline-block;
+            text-decoration: none;
+            margin-top: 8px;
+            border-radius: 999px;
+            padding: 0.45rem 0.85rem;
+            font-weight: 700;
+        }
+
+        .profile-edit-btn {
+            color: #fff;
+            background: linear-gradient(120deg, #8a5d3b, #6b4327);
+        }
+
+        .post-card,
+        .empty-post {
+            margin-top: 10px;
+        }
+
+        .flag-badge {
+            background: #ffe8b7;
+            border: 1px solid #f1c15f;
+            color: #6d4d03;
+            border-radius: 8px;
+            padding: 0.45rem 0.6rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .post-image {
+            width: 200px;
+            max-height: 280px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .btn-unlike {
+            color: #fff;
+            background: #8a5d3b;
+        }
+
+        .btn-like {
+            color: #8a3d56;
+            background: #ffe7ee;
+        }
+
+        .btn-delete {
+            color: #fff;
+            background: #c64d4d;
+        }
+
+        .btn-flag {
+            color: #5a3c00;
+            background: #ffb648;
+        }
+
+        .btn-unflag {
+            color: #fff;
+            background: #8a5d3b;
+        }
+    </style>
     <h1>Profile</h1>
     <main>
         <div>
-            <img src="" alt="image">
+            <% if (profile.photo) { %>
+                <img src="<%= profile.photo %>" alt="image" class="profile-photo">
+            <% } else { %>
+                <p>No photo yet</p>
+            <% } %>
+            <h3><%= profile.name || "-" %></h3>
+            <p><%= profile.description || "-" %></p>
+            <% if (isOwner) { %>
+                <a href="/profile/<%= profile.id %>/edit" class="profile-edit-btn">Edit Profile</a>
+            <% } %>
         </div>
+
+        <h2>My Pawsts</h2>
+        <% if (profile.Posts && profile.Posts.length) { %>
+            <% profile.Posts.forEach(el => { %>
+                <article class="post-card">
+                    <% if (el.isFlagged) { %>
+                        <p class="flag-badge">this post has been flagged</p>
+                    <% } %>
+                    <% if (el.imageUrl) { %>
+                        <img src="<%= el.imageUrl %>" alt="post image" class="post-image">
+                    <% } %>
+                    <h3><%= el.title %></h3>
+                    <p><%= el.content %></p>
+                    <% if (el.Tags && el.Tags.length) { %>
+                        <p>Tag: <%= el.Tags[0].name %></p>
+                    <% } %>
+                    <p><%= el.publishedTime %></p>
+                    <p>Total Likes: <%= likeCounts[el.id] || 0 %></p>
+                    <% if (likedPostIds.includes(el.id)) { %>
+                        <a href="/explore/<%= el.id %>/unlike" class="post-action-btn btn-unlike">Unlike</a>
+                    <% } else { %>
+                        <a href="/explore/<%= el.id %>/like" class="post-action-btn btn-like">Like</a>
+                    <% } %>
+                    <% if (isOwner || (isAdmin && el.isFlagged)) { %>
+                        <a href="/profile/<%= profile.id %>/post/<%= el.id %>/delete" class="post-action-btn btn-delete">Delete Post</a>
+                    <% } %>
+                    <% if (isAdmin && !el.isFlagged) { %>
+                        <a href="/explore/<%= el.id %>/flag" class="post-action-btn btn-flag">Flag Post</a>
+                    <% } %>
+                    <% if (isAdmin && el.isFlagged) { %>
+                        <a href="/explore/<%= el.id %>/unflag" class="post-action-btn btn-unflag">Unflag Post</a>
+                    <% } %>
+                </article>
+            <% }) %>
+        <% } else { %>
+            <div class="empty-post">
+                <p>You have no post yet.</p>
+            </div>
+        <% } %>
     </main>
 </body>
 </html>

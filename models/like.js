@@ -21,8 +21,10 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'Like',
   });
-    Like.beforeCreate((instance) => {
-    instance.isLiked = false
+  Like.beforeCreate((instance) => {
+    if (instance.isLiked === undefined || instance.isLiked === null) {
+      instance.isLiked = false
+    }
   })
   return Like;
 };

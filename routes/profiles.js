@@ -4,11 +4,11 @@ const router = require("express").Router()
 
 //Tampilan Profile
 router.get("/", Controller.getProfile)
-router.get("/:profileId/edit", Controller.getEditProf)
-router.post("/:profileId/edit", Controller.postEditProf)
+router.get("/:ProfileId/edit", Controller.getEditProf)
+router.post("/:ProfileId/edit", Controller.postEditProf)
 
 //Tampilan Post
-router.get("/:profileId/post/:postId", Controller.getPost)
-router.post("/:profileId/post/:postId/edit", Controller.postEditPost)
+router.get("/:ProfileId/post/:PostId", Controller.getPost)
+router.post("/:ProfileId/post/:PostId/edit", Controller.postEditPost)
 
 module.exports = router

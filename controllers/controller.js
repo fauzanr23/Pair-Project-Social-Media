@@ -1,12 +1,14 @@
 const { Post, Profile, Tag, User } = require("../models/index")
 const { Helper } = require("../helpers/index")
 const { Op } = require("sequelize")
+const bcrypt = require("bcryptjs")
 class Controller {
 
     //halaman login
     static async getLogin(req, res) {
         try {
-
+            const {error} = req.query
+            res.render("login", {error})
         } catch (error) {
             res.send(error)
         }
@@ -14,7 +16,40 @@ class Controller {
     //fungsi login
     static async postLogin(req, res) {
         try {
+            const {email, password} = req.body
+            let user = await User.findOne({
+                where: {
+                    email: email
+                }
+            });
 
+            if (user){
+                const isValidPassword = bcrypt.compareSync(password, user.password)
+
+                if(isValidPassword){
+                    req.session.user = {
+                        id: user.id, 
+                        role: user.role, 
+                        username: user.username
+                    }
+                    return res.redirect("/explore")    
+                } else {
+                    const error = "Invalid email/password!"
+                    return res.redirect(`/start?error=${error}`)
+                }
+            } else {
+                const error = "Invalid email/password!"
+                return res.redirect(`/start?error=${error}`)
+            }
+        } catch (error) {
+            res.send(error)
+        }
+    }
+    //logout
+    static async getLogout(req, res){
+        try {
+            req.session.destroy()
+            res.redirect("/start")
         } catch (error) {
             res.send(error)
         }
@@ -22,7 +57,7 @@ class Controller {
     //halaman register
     static async getRegister(req, res) {
         try {
-
+            res.render("register")
         } catch (error) {
             res.send(error)
         }
@@ -30,8 +65,20 @@ class Controller {
     //submit register
     static async postRegister(req, res) {
         try {
-
+            const {username, email, password, dateOfBirth} = req.body
+            let user = await User.create({
+                username, 
+                email, 
+                password, 
+                dateOfBirth
+            })
+            await Profile.create({
+                UserId: user.id
+            })
+            res.redirect("/")
         } catch (error) {
+            console.log(error);
+            
             res.send(error)
         }
     }
@@ -39,8 +86,14 @@ class Controller {
     //halaman home (ada form buat status)
     static async getExplore(req, res) {
         try {
+            const userId = req.session.user.id
+            const profile = await Profile.findOne({
+                where: {
+                    UserId: userId
+                }
+            })
             let posts = await Post.findAll()
-            res.render("explore", { posts })
+            res.render("explore", { posts, profile })
         } catch (error) {
             res.send(error)
         }
@@ -50,6 +103,7 @@ class Controller {
     static async postExplore(req, res) {
         try {
             const { ProfileId } = req.params
+
             const { title, content, imageUrl } = req.body
             await Post.create({
                 title,
@@ -57,6 +111,7 @@ class Controller {
                 imageUrl,
                 ProfileId
             })
+            res.redirect("/explore")
         } catch (error) {
             res.send(error)
         }

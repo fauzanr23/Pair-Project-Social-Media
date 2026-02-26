@@ -15,7 +15,7 @@ module.exports = {
       description: {
         type: Sequelize.TEXT
       },
-      location: {
+      name: {
         type: Sequelize.STRING
       },
       UserId: {

@@ -2,13 +2,12 @@
 const {
   Model
 } = require('sequelize');
+const Helper = require('../helpers');
 module.exports = (sequelize, DataTypes) => {
   class Post extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
+    get publishedTime(){
+      return Helper.postTime(this.createdAt)
+    }
     static associate(models) {
       Post.belongsTo(models.Profile, {foreignKey: "ProfileId"})
 
@@ -41,10 +40,14 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     imageUrl: {
-      type: DataTypes.TEXT,
+      type: DataTypes.STRING,
       allowNull: true
     },
     like: DataTypes.INTEGER,
+    imageUrl: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true
+    },
     ProfileId: DataTypes.INTEGER
   }, {
     sequelize,

@@ -24,16 +24,16 @@ module.exports = (sequelize, DataTypes) => {
     role: DataTypes.STRING
   }, {
     hooks: {
-      beforeCreate(instance, options) {
+      beforeCreate(user, options) {
         const salt = bcrypt.genSaltSync(8);
-        const hash = bcrypt.hashSync(instance.password, salt)
-        instance.password = hash
-        instance.role = "user"
+        const hash = bcrypt.hashSync(user.password, salt)
+        user.password = hash
+        user.role = "user"
       },
-      afterCreate(instance, options) {
+      afterCreate(user, options) {
         let message = {
           from: `"MeowSpace" <MeowSpace@email.com>`,
-          to: instance.email,
+          to: user.email,
           subject: "Registration Successfull",
           text: "Welcome to MeowSpace!",
           html: "<p>Welcome to MeowSpace!</b>.</p>",

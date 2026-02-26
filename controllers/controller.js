@@ -1,4 +1,4 @@
-const { Post, Profile, Tag, User } = require("../models/index")
+const { Post, Profile, Tag, User, PostTag } = require("../models/index")
 const { Helper } = require("../helpers/index")
 const { Op } = require("sequelize")
 const bcrypt = require("bcryptjs")
@@ -7,8 +7,8 @@ class Controller {
     //halaman login
     static async getLogin(req, res) {
         try {
-            const {error} = req.query
-            res.render("login", {error})
+            const { error } = req.query
+            res.render("login", { error })
         } catch (error) {
             res.send(error)
         }
@@ -16,23 +16,23 @@ class Controller {
     //fungsi login
     static async postLogin(req, res) {
         try {
-            const {email, password} = req.body
+            const { email, password } = req.body
             let user = await User.findOne({
                 where: {
                     email: email
                 }
             });
 
-            if (user){
+            if (user) {
                 const isValidPassword = bcrypt.compareSync(password, user.password)
 
-                if(isValidPassword){
+                if (isValidPassword) {
                     req.session.user = {
-                        id: user.id, 
-                        role: user.role, 
+                        id: user.id,
+                        role: user.role,
                         username: user.username
                     }
-                    return res.redirect("/explore")    
+                    return res.redirect("/explore")
                 } else {
                     const error = "Invalid email/password!"
                     return res.redirect(`/start?error=${error}`)
@@ -46,7 +46,7 @@ class Controller {
         }
     }
     //logout
-    static async getLogout(req, res){
+    static async getLogout(req, res) {
         try {
             req.session.destroy()
             res.redirect("/start")
@@ -65,20 +65,19 @@ class Controller {
     //submit register
     static async postRegister(req, res) {
         try {
-            const {username, email, password, dateOfBirth} = req.body
+            const { username, email, password, dateOfBirth } = req.body
             let user = await User.create({
-                username, 
-                email, 
-                password, 
+                username,
+                email,
+                password,
                 dateOfBirth
             })
             await Profile.create({
-                UserId: user.id
+                UserId: user.id,
+                name: user.username
             })
             res.redirect("/")
         } catch (error) {
-            console.log(error);
-            
             res.send(error)
         }
     }
@@ -92,7 +91,9 @@ class Controller {
                     UserId: userId
                 }
             })
-            let posts = await Post.findAll()
+            let posts = await Post.findAll({
+                include: Tag
+            })
             res.render("explore", { posts, profile })
         } catch (error) {
             res.send(error)
@@ -104,15 +105,37 @@ class Controller {
         try {
             const { ProfileId } = req.params
 
-            const { title, content, imageUrl } = req.body
-            await Post.create({
+            const { title, content, imageUrl, name } = req.body
+            let post = await Post.create({
                 title,
                 content,
                 imageUrl,
                 ProfileId
             })
+            let tag;
+            if (name) {
+                tag = await Tag.create({
+                    name
+                })
+                await PostTag.create({
+                    PostId: post.id,
+                    TagId: tag.id
+                })
+            } else {
+                await PostTag.create({
+                    PostId: post.id,
+                })
+            }
+
+            await Like.create({
+                PostId: post.id,
+                UserId: ProfileId
+            })
+
             res.redirect("/explore")
         } catch (error) {
+            console.log(error);
+
             res.send(error)
         }
     }

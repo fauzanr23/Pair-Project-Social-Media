@@ -12,6 +12,8 @@ module.exports = (sequelize, DataTypes) => {
       Post.belongsTo(models.Profile, {foreignKey: "ProfileId"})
 
       Post.belongsToMany(models.Tag, {through: models.PostTag, foreignKey: "PostId"})
+
+      Post.belongsToMany(models.User, {through: models.Like, foreignKey: "PostId"})
     }
   }
   Post.init({
@@ -43,7 +45,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true
     },
-    like: DataTypes.INTEGER,
     imageUrl: {
       type: DataTypes.BOOLEAN,
       allowNull: true
@@ -53,8 +54,5 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'Post',
   });
-  Post.beforeCreate((instance) => {
-    instance.like = 0
-  })
   return Post;
 };

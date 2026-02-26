@@ -9,7 +9,7 @@ class Controller {
             if (req.session.UserId) {
                 return res.redirect("/explore")
             }
-            res.render("login")
+            res.render("auth", { page: "login" })
         } catch (error) {
             res.send(error)
         }
@@ -21,13 +21,13 @@ class Controller {
             const user = await User.findOne({ where: { email }})
 
             if (!user) {
-                return res.render("login", { error: "Email is not registered" })
+                return res.render("auth", { page: "login", error: "Email is not registered" })
             }
 
             const isMatch = Helper.comparePassword(password, user.password)
 
             if (!isMatch) {
-                return res.render("login", { error: "Invalid password"})
+                return res.render("auth", { page: "login", error: "Invalid password" })
             }
 
             req.session.UserId = user.id
@@ -39,11 +39,11 @@ class Controller {
     //halaman register
     static async getRegister(req,res) {
         try {
-            if (req.session.userId) {
+            if (req.session.UserId) {
                 return res.redirect("/explore")
             }
 
-            res.render("register")
+            res.render(auth, { page: "register" })
         } catch (error) {
             res.send(error)
         }
@@ -57,7 +57,7 @@ class Controller {
             await Profile.create({ UserId: newUser.id })
             res.redirect("/login")
         } catch (error) {
-            res.render("register", { error: error.errors?.[0]?.message || error.message })
+            res.render("auth", { page: "register", error: error.errors?.[0]?.message || error.message })
         }
     }
 

@@ -14,10 +14,48 @@
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 40px;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1877f2;
+            text-decoration: none;
+        }
+
+        .btn-logout {
+            padding: 8px 20px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .btn-logout:hover {
+            background-color: #c0392b;
+        }
+
+        .main-content {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            min-height: calc(100vh - 60px);
+            padding: 40px 20px;
         }
 
         .card {
@@ -26,13 +64,13 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
         }
 
         h1 {
             text-align: center;
             color: #1877f2;
-            font-size: 32px;
+            font-size: 30px;
             margin-bottom: 6px;
         }
 
@@ -147,147 +185,181 @@
         .btn-register:hover {
             background-color: #36a420;
         }
+
+        .success-box {
+            background-color: #e0ffe0;
+            color: #007700;
+            border: 1px solid #b3ffb3;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
+    <nav class="navbar">
+        <a href="/" class="logo">✦ MyApp</a>
 
-    <h1>MyApp</h1>
-    <p class="subtitle">
-        <%= page === 'login' ? 'Masuk ke akun kamu' : 'Buat akun baru kamu' %>
-    </p>
-    <div class="tabs">
-        <a href="/login" class="tab <%= page === 'login' ? 'active' : '' %>">
-            Login
-        </a>
-        <a href="/register" class="tab <%= page === 'register' ? 'active' : '' %>">
-            Register
-        </a>
-    </div>
+        <% if (typeof UserId !== 'undefined' && UserId) { %>
+            <a href="/logout" class="btn-logout">🚪 Logout</a>
+        <% } %>
+    </nav>
 
-    <% if (typeof error !== 'undefined' && error) { %>
-        <div class="error-box">
-            <%= error %>
+    <div class="main-content">
+        <div class="card">
+
+            <h1>✦ Sosmed</h1>
+
+            <p class="subtitle">
+                <%= page === 'login' ? 'Masuk ke akun kamu' : 'Buat akun baru' %>
+            </p>
+
+            <div class="tabs">
+                <a href="/login" class="tab <%= page === 'login' ? 'active' : '' %>">
+                    Login
+                </a>
+                <a href="/register" class="tab <%= page === 'register' ? 'active' : '' %>">
+                    Register
+                </a>
+            </div>
+
+            <% if (typeof logoutSuccess !== 'undefined' && logoutSuccess) { %>
+                <div class="success-box">
+                    Kamu berhasil logout!
+                </div>
+            <% } %>
+
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div class="error-box">
+                    ⚠️ <%= error %>
+                </div>
+            <% } %>
+
+
+            <% if (page === 'login') { %>
+
+                <form action="/login" method="POST">
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Masukkan email kamu"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Masukkan password kamu"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit" class="btn-login">Masuk →</button>
+
+                </form>
+
+            <% } %>
+
+            <% if (page === 'register') { %>
+
+                <form action="/register" method="POST" id="registerForm">
+
+                    <div class="form-group">
+                        <label for="username">👤 Username</label>
+                        
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            placeholder="Masukkan username kamu"
+                            required
+                            minlength="3"
+                        >
+                        <p class="input-hint">Minimal 3 karakter</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regEmail">📧 Email</label>
+                        <input
+                            type="email"
+                            id="regEmail"
+                            name="email"
+                            placeholder="Masukkan email kamu"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regPassword">🔒 Password</label>
+                        <input
+                            type="password"
+                            id="regPassword"
+                            name="password"
+                            placeholder="Buat password kamu"
+                            required
+                            minlength="6"
+                        >
+                        <p class="input-hint">Minimal 6 karakter</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">🔒 Konfirmasi Password</label>
+                       
+                        <input
+                            type="password"
+                            id="confirmPassword"
+                            placeholder="Ulangi password kamu"
+                            required
+                        >
+                        <p class="input-hint" id="passError" style="color:red; display:none;">
+                            Password tidak cocok!
+                        </p>
+                    </div>
+
+                    <button type="submit" class="btn-register">Daftar Sekarang →</button>
+
+                </form>
+
+                <script>
+                    const regPassword = document.getElementById("regPassword")
+                    const confirmPassword = document.getElementById("confirmPassword")
+                    const passError = document.getElementById("passError")
+
+                    confirmPassword.addEventListener("input", function() {
+                        if (regPassword.value !== confirmPassword.value) {
+                            passError.style.display = "block"
+                            confirmPassword.style.borderColor = "red"
+                        } else {
+                            passError.style.display = "none"
+                            confirmPassword.style.borderColor = "green"
+                        }
+                    })
+
+                    document.getElementById("registerForm").addEventListener("submit", function(e) {
+                        if (regPassword.value !== confirmPassword.value) {
+                            e.preventDefault()
+                            passError.style.display = "block"
+                        }
+                    })
+                </script>
+
+            <% } %>
+
         </div>
-    <% } %>
-
-    <% if (page === 'login') { %>
-
-        <form action="/login" method="POST">
-
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    placeholder="Masukkan email kamu"
-                    required
-                >
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    placeholder="Masukkan password kamu"
-                    required
-                >
-            </div>
-
-            <button type="submit" class="btn-login">Masuk</button>
-
-        </form>
-
-    <% } %>
-
-
-    <% if (page === 'register') { %>
-
-        <form action="/register" method="POST" id="registerForm">
-
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input 
-                    type="text" 
-                    id="username" 
-                    name="username" 
-                    placeholder="Masukkan username kamu"
-                    required
-                    minlength="3"
-                >
-                <p class="input-hint">Minimal 3 karakter</p>
-            </div>
-
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    placeholder="Masukkan email kamu"
-                    required
-                >
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    placeholder="Buat password kamu"
-                    required
-                    minlength="6"
-                >
-                <p class="input-hint">Minimal 6 karakter</p>
-            </div>
-
-            <div class="form-group">
-                <label for="confirmPassword">Konfirmasi Password</label>
-                <input 
-                    type="password" 
-                    id="confirmPassword" 
-                    placeholder="Ulangi password kamu"
-                    required
-                >
-                <p class="input-hint" id="passError" style="color:red; display:none;">
-                </p>
-            </div>
-
-            <button type="submit" class="btn-register">Daftar Sekarang</button>
-
-        </form>
-
-        <script>
-            const password = document.getElementById("password")
-            const confirmPassword = document.getElementById("confirmPassword")
-            const passError = document.getElementById("passError")
-
-            confirmPassword.addEventListener("input", function() {
-                if (password.value !== confirmPassword.value) {
-                    passError.style.display = "block"
-                    confirmPassword.style.borderColor = "red"
-                } else {
-                    passError.style.display = "none"
-                    confirmPassword.style.borderColor = "green"
-                }
-            })
-
-            document.getElementById("registerForm").addEventListener("submit", function(e) {
-                if (password.value !== confirmPassword.value) {
-                    e.preventDefault()
-                    passError.style.display = "block"
-                }
-            })
-        </script>
-
-    <% } %>
-
-</div>
+    </div>
 
 </body>
 </html>

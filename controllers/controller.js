@@ -9,7 +9,9 @@ class Controller {
             if (req.session.UserId) {
                 return res.redirect("/explore")
             }
-            res.render("auth", { page: "login" })
+            res.render("auth", { page: "login",
+                UserId: req.session.UserId
+             })
         } catch (error) {
             res.send(error)
         }
@@ -43,7 +45,9 @@ class Controller {
                 return res.redirect("/explore")
             }
 
-            res.render(auth, { page: "register" })
+            res.render("auth", { page: "register",
+                UserId: req.session.UserId
+             })
         } catch (error) {
             res.send(error)
         }
@@ -60,11 +64,25 @@ class Controller {
             res.render("auth", { page: "register", error: error.errors?.[0]?.message || error.message })
         }
     }
+    //logout
+    static async logout(req, res) {
+        try {
+            req.session.destroy((err) => {
+                if (err) {
+                    return res.send(err)
+                }
+
+                res.redirect("/login")
+            })
+        } catch (error) {
+            res.send(error)
+        }
+    }
 
     //halaman home (ada form buat status)
     static async getExplore(req,res) {
         try {
-            const post = await Post.findAll({
+            const posts = await Post.findAll({
                 include: [
                     { model: User },
                     { model: Tag },
@@ -147,7 +165,7 @@ class Controller {
     static async getEditProf(req,res) {
         try {
             const profile = await Profile.findOne({
-                where: { UserId: req.session.userId }
+                where: { UserId: req.session.UserId }
             })
             res.render("editProfile", { profile })
         } catch (error) {
@@ -161,10 +179,10 @@ class Controller {
             const { bio, profilePicture } = req.body
             await Profile.update(
                 { bio, profilePicture },
-                { where: { UserId: req.session.userId }}
+                { where: { UserId: req.session.UserId }}
             )
 
-            res.redirect(`/profile/${req.session.userId}`)
+            res.redirect(`/profile/${req.session.UserId}`)
         } catch (error) {
             res.send(error)
         }
@@ -185,7 +203,7 @@ class Controller {
                 return res.render("404", { message: "Post is not found" })
             }
 
-            const isOwner = req.session.userId == post.UserId
+            const isOwner = req.session.UserId == post.UserId
             res.render("post", { post, isOwner })
         } catch (error) {
             res.send(error)
@@ -198,7 +216,7 @@ class Controller {
             const { content } = req.body
             const post = await Post.findByPk(id)
 
-            if (post.UserId !== req.session.userId) {
+            if (post.UserId !== req.session.UserId) {
                 return res.render("403", { message: "You don't have access!" })
             }
 

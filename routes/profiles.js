@@ -3,12 +3,12 @@ const Controller = require("../controllers/controller")
 const router = require("express").Router()
 
 //Tampilan Profile
-router.get("/", Controller.getProfile)
-router.get("/edit", Controller.getEditProf)
-router.post("/edit", Controller.postEditProf)
+router.get("/profile/:id", isAuthenticated, Controller.getProfile)
+router.get("/profile/edit", isAuthenticated, Controller.getEditProf)
+router.post("/profile/edit", isAuthenticated, Controller.postEditProf)
 
 //Tampilan Post
-router.get("/:postId", Controller.getPost)
-router.post("/:postId/edit", Controller.postEditPost)
+router.get("/post/:id", isAuthenticated, Controller.getPost)
+router.post("/post/:id/edit", isAuthenticated, Controller.postEditPost)
 
 module.exports = router
